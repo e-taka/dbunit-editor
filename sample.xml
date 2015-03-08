@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dataset>
+    <table name="user_info">
+        <column>user_id</column>
+        <column>user_name</column>
+        <column>password</column>
+        <row>
+            <value>1</value>
+            <value>admin</value>
+            <value>****</value>
+        </row>
+        <row>
+            <value>2</value>
+            <value>operator</value>
+            <null />
+        </row>
+    </table>
+    <table name="user_group">
+        <column>user_group_id</column>
+        <column>user_group_name</column>
+        <row>
+            <value>1</value>
+            <value>operators</value>
+        </row>
+    </table>
+    <table name="user_group_user_info">
+        <column>user_group_id</column>
+        <column>user_info_id</column>
+        <row>
+            <value>1</value>
+            <value>2</value>
+        </row>
+    </table>
+</dataset>
