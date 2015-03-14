@@ -1,15 +1,12 @@
 package org.dbunit_editor;
 
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.List;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
@@ -53,90 +50,13 @@ public class Launcher {
     }
 
     private JMenu createFileMenu() {
-        final Launcher that = this;
-
-        JMenuItem open = new JMenuItem("Open...", KeyEvent.VK_O);
-        open.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(final ActionEvent e) {
-                JFileChooser chooser = new JFileChooser();
-                chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
-                switch (chooser.showOpenDialog(_window)) {
-                case JFileChooser.APPROVE_OPTION:
-                    File path = chooser.getSelectedFile();
-                    try {
-                        DataSetWindow win = new DataSetWindow(_pane, path);
-                        win.addListener(new DataSetWindowListener(that, win));
-                        win.show();
-                        _files.add(win);
-                    } catch (DataSetException | IOException ex) {
-                        // TODO Auto-generated catch block
-                        ex.printStackTrace();
-                    }
-                    break;
-                default:
-                }
-            }
-        });
-
-        JMenuItem save = new JMenuItem(new SaveAction(this));
-
-        JMenuItem saveAs = new JMenuItem("Save As...", KeyEvent.VK_A);
-        saveAs.setEnabled(false);
-        saveAs.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(final ActionEvent e) {
-                if (_actived == null) {
-                    return;
-                }
-                JFileChooser chooser = new JFileChooser();
-                chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
-                switch (chooser.showSaveDialog(_window)) {
-                case JFileChooser.APPROVE_OPTION:
-                    File path = chooser.getSelectedFile();
-                    try {
-                        _actived.saveTo(path);
-                    } catch (IOException ex) {
-                        // TODO Auto-generated catch block
-                        ex.printStackTrace();
-                    }
-                    break;
-                default:
-                }
-            }
-        });
-
-        JMenuItem close = new JMenuItem(new CloseAction(this));
-
-        JMenuItem exit = new JMenuItem("Quit", KeyEvent.VK_Q);
-        exit.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(final ActionEvent e) {
-                _window.setVisible(false);
-                _window.dispose();
-            }
-        });
-
-        final List<JMenuItem> disables = Arrays.asList(new JMenuItem[] {
-                saveAs,
-        });
-        addListener(new DataSetWindowChangeListener() {
-            @Override
-            public void changePerformed(final DataSetWindowChangeEvent e) {
-                boolean enabled = ActiveEvent.ACTIVATED.equals(e.getEvent());
-                for (final JMenuItem menu : disables) {
-                    menu.setEnabled(enabled);
-                }
-            }
-        });
-
         JMenu menu = new JMenu("File");
         menu.setMnemonic(KeyEvent.VK_F);
-        menu.add(open);
-        menu.add(save);
-        menu.add(saveAs);
-        menu.add(close);
-        menu.add(exit);
+        menu.add(new JMenuItem(new OpenAction(this)));
+        menu.add(new JMenuItem(new SaveAction(this)));
+        menu.add(new JMenuItem(new SaveAsAction(this)));
+        menu.add(new JMenuItem(new CloseAction(this)));
+        menu.add(new JMenuItem(new QuitAction(this)));
 
         return menu;
     }
@@ -145,78 +65,6 @@ public class Launcher {
         return _actived;
     }
 
-    static class SaveAction extends AbstractAction {
-        /** シリアルバージョンUID */
-        private static final long serialVersionUID = -8800117080592625926L;
-        private final Launcher _launcher;
-
-        public SaveAction(final Launcher launcher) {
-            super("Save");
-
-            _launcher = launcher;
-            putValue(Action.MNEMONIC_KEY, KeyEvent.VK_S);
-            KeyStroke key =
-                    KeyStroke.getKeyStroke(
-                            KeyEvent.VK_S, InputEvent.CTRL_DOWN_MASK);
-            putValue(Action.ACCELERATOR_KEY, key);
-
-            setEnabled(false);
-            launcher.addListener(new DataSetWindowChangeListener() {
-                @Override
-                public void changePerformed(final DataSetWindowChangeEvent e) {
-                    setEnabled(ActiveEvent.ACTIVATED.equals(e.getEvent()));
-                }
-            });
-        }
-
-        @Override
-        public void actionPerformed(final ActionEvent e) {
-            DataSetWindow actived = _launcher.getActiveWindow();
-            if (actived != null) {
-                try {
-                    actived.save();
-                } catch (IOException ex) {
-                    // TODO Auto-generated catch block
-                    ex.printStackTrace();
-                }
-            }
-        }
-    }
-
-    static class CloseAction extends AbstractAction {
-        /** シリアルバージョンUID */
-        private static final long serialVersionUID = -5259404202219742959L;
-        private final Launcher _launcher;
-
-        public CloseAction(final Launcher launcher) {
-            super("Close");
-
-            _launcher = launcher;
-            putValue(Action.MNEMONIC_KEY, KeyEvent.VK_W);
-            KeyStroke key =
-                    KeyStroke.getKeyStroke(
-                            KeyEvent.VK_W, InputEvent.CTRL_DOWN_MASK);
-            putValue(Action.ACCELERATOR_KEY, key);
-
-
-            setEnabled(false);
-            launcher.addListener(new DataSetWindowChangeListener() {
-                @Override
-                public void changePerformed(final DataSetWindowChangeEvent e) {
-                    setEnabled(ActiveEvent.ACTIVATED.equals(e.getEvent()));
-                }
-            });
-        }
-
-        @Override
-        public void actionPerformed(final ActionEvent e) {
-            DataSetWindow actived = _launcher.getActiveWindow();
-            if (actived != null) {
-                actived.close();
-            }
-        }
-
-    }
     public void addListener(final DataSetWindowChangeListener l) {
         _listeners.add(l);
     }
@@ -248,14 +96,207 @@ public class Launcher {
         }
     }
 
+    public void open(final File path) {
+        try {
+            DataSetWindow win = new DataSetWindow(_pane, path);
+            win.addListener(new DataSetWindowListener(this, win));
+            win.show();
+            _files.add(win);
+        } catch (DataSetException | IOException ex) {
+            // TODO Auto-generated catch block
+            ex.printStackTrace();
+        }
+    }
+
+    public void quit() {
+        _window.setVisible(false);
+        _window.dispose();
+    }
+
     public static void main(final String...args) {
         SwingUtilities.invokeLater(new Runnable() {
             @Override
             public void run() {
                 Launcher launcher = new Launcher();
                 launcher.start();
+
+                for (final String arg : args) {
+                    File path = new File(arg);
+                    if (path.isFile()) {
+                        launcher.open(path);
+                    }
+                }
             }
         });
+    }
+
+    static abstract class AbstractMenuAction extends AbstractAction {
+        /** シリアルバージョンUID */
+        private static final long serialVersionUID = -1506779369000547402L;
+        protected final Launcher _launcher;
+
+        protected AbstractMenuAction(
+                final String name, final Launcher launcher) {
+            super(name);
+            _launcher = launcher;
+        }
+
+        protected void setMnemonic(final int key) {
+            putValue(Action.MNEMONIC_KEY, key);
+        }
+
+        protected void setAccelerator(final KeyStroke key) {
+            putValue(Action.ACCELERATOR_KEY, key);
+        }
+
+        protected void addListnerToChangeEnabled(final Action a) {
+            _launcher.addListener(new DataSetWindowChangeListener() {
+                @Override
+                public void changePerformed(final DataSetWindowChangeEvent e) {
+                    a.setEnabled(ActiveEvent.ACTIVATED.equals(e.getEvent()));
+                }
+            });
+        }
+    }
+
+    static class OpenAction extends AbstractMenuAction {
+        /** シリアルバージョンUID */
+        private static final long serialVersionUID = -2134294147087859001L;
+
+        public OpenAction(final Launcher launcher) {
+            super("Open...", launcher);
+
+            setMnemonic(KeyEvent.VK_O);
+            setAccelerator(
+                    KeyStroke.getKeyStroke(
+                            KeyEvent.VK_O, InputEvent.CTRL_DOWN_MASK));
+        }
+
+        @Override
+        public void actionPerformed(final ActionEvent e) {
+            JFileChooser chooser = new JFileChooser();
+            chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+            switch (chooser.showOpenDialog(_launcher._window)) {
+            case JFileChooser.APPROVE_OPTION:
+                _launcher.open(chooser.getSelectedFile());
+                break;
+            default:
+            }
+        }
+    }
+
+    static class SaveAction extends AbstractMenuAction {
+        /** シリアルバージョンUID */
+        private static final long serialVersionUID = -8800117080592625926L;
+
+        public SaveAction(final Launcher launcher) {
+            super("Save", launcher);
+
+            setMnemonic(KeyEvent.VK_S);
+            setAccelerator(
+                    KeyStroke.getKeyStroke(
+                            KeyEvent.VK_S, InputEvent.CTRL_DOWN_MASK));
+
+            setEnabled(false);
+            addListnerToChangeEnabled(this);
+        }
+
+        @Override
+        public void actionPerformed(final ActionEvent e) {
+            DataSetWindow actived = _launcher.getActiveWindow();
+            if (actived != null) {
+                try {
+                    actived.save();
+                } catch (IOException ex) {
+                    // TODO Auto-generated catch block
+                    ex.printStackTrace();
+                }
+            }
+        }
+    }
+
+    static class SaveAsAction extends AbstractMenuAction {
+        /** シリアルバージョンUID */
+        private static final long serialVersionUID = -8800117080592625926L;
+
+        public SaveAsAction(final Launcher launcher) {
+            super("Save As...", launcher);
+
+            setMnemonic(KeyEvent.VK_A);
+            setAccelerator(
+                    KeyStroke.getKeyStroke(
+                            KeyEvent.VK_A, InputEvent.CTRL_DOWN_MASK));
+
+            setEnabled(false);
+            addListnerToChangeEnabled(this);
+        }
+
+        @Override
+        public void actionPerformed(final ActionEvent e) {
+            DataSetWindow actived = _launcher.getActiveWindow();
+            if (actived == null) {
+                return;
+            }
+
+            JFileChooser chooser = new JFileChooser();
+            chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+            switch (chooser.showSaveDialog(_launcher._window)) {
+            case JFileChooser.APPROVE_OPTION:
+                try {
+                    actived.saveTo(chooser.getSelectedFile());
+                } catch (IOException ex) {
+                    // TODO Auto-generated catch block
+                    ex.printStackTrace();
+                }
+                break;
+            default:
+            }
+        }
+    }
+
+    static class CloseAction extends AbstractMenuAction {
+        /** シリアルバージョンUID */
+        private static final long serialVersionUID = -5259404202219742959L;
+
+        public CloseAction(final Launcher launcher) {
+            super("Close", launcher);
+
+            setMnemonic(KeyEvent.VK_W);
+            setAccelerator(
+                    KeyStroke.getKeyStroke(
+                            KeyEvent.VK_W, InputEvent.CTRL_DOWN_MASK));
+
+            setEnabled(false);
+            addListnerToChangeEnabled(this);
+        }
+
+        @Override
+        public void actionPerformed(final ActionEvent e) {
+            DataSetWindow actived = _launcher.getActiveWindow();
+            if (actived != null) {
+                actived.close();
+            }
+        }
+
+    }
+
+    static class QuitAction extends AbstractMenuAction {
+        /** シリアルバージョンUID */
+        private static final long serialVersionUID = -3811451899041807204L;
+
+        public QuitAction(final Launcher launcher) {
+            super("Quit", launcher);
+
+            setMnemonic(KeyEvent.VK_Q);
+            setAccelerator(
+                    KeyStroke.getKeyStroke(
+                            KeyEvent.VK_Q, InputEvent.CTRL_DOWN_MASK));
+        }
+
+        @Override
+        public void actionPerformed(final ActionEvent e) {
+            _launcher.quit();
+        }
     }
 
     static class DataSetWindowListener implements InternalFrameListener {
@@ -269,7 +310,6 @@ public class Launcher {
 
         @Override
         public void internalFrameOpened(final InternalFrameEvent e) {
-            System.out.println("Opened.");
             _parent.activated(_children);
         }
 
@@ -292,13 +332,11 @@ public class Launcher {
 
         @Override
         public void internalFrameActivated(final InternalFrameEvent e) {
-            System.out.println("Activated.");
             _parent.activated(_children);
         }
 
         @Override
         public void internalFrameDeactivated(final InternalFrameEvent e) {
-            System.out.println("Deactivated.");
             _parent.deactivated(_children);
         }
     }
