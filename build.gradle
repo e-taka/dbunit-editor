@@ -1,6 +1,5 @@
 apply plugin: 'java'
 apply plugin: 'application'
-apply plugin: 'war'
 apply plugin: 'eclipse'
 
 sourceCompatibility = 1.7
@@ -16,7 +15,19 @@ applicationName = 'DbUnit Editor'
 jar {
     manifest {
         attributes 'Implementation-Title': 'DbUnit Editor',
-                   'Implementation-Version': version
+                   'Implementation-Version': version,
+                   'Main-Class': mainClassName
+    }
+
+    dependsOn configurations.runtime
+    from {
+        (configurations.runtime - configurations.provided).collect {
+            it.isDirectory() ? it : zipTree(it)
+        }
+    } {
+        exclude "META-INF/*.SF"
+        exclude "META-INF/*.DSA"
+        exclude "META-INF/*.RSA"
     }
 }
 
@@ -24,9 +35,14 @@ repositories {
     mavenCentral()
 }
 
+configurations {
+    provided
+    compile.extendsFrom provided
+}
+
 dependencies {
     compile('org.dbunit:dbunit:2.5.0') {
         exclude module: 'junit'
     }
-    providedCompile 'org.projectlombok:lombok:1.16.2'
+    provided 'org.projectlombok:lombok:1.16.2'
 }
