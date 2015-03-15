@@ -99,6 +99,14 @@ public class DataSetWindow {
         _window.setTitle(_model.getName());
     }
 
+    public void copy() {
+        getSelectedTab().copy();
+    }
+
+    public void paste() {
+        getSelectedTab().paste();
+    }
+
     public void addListener(final InternalFrameListener listener) {
         _window.addInternalFrameListener(listener);
     }

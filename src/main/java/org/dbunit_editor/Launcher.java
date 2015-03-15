@@ -46,6 +46,7 @@ public class Launcher {
     private JMenuBar createMenues() {
         JMenuBar menu = new JMenuBar();
         menu.add(createFileMenu());
+        menu.add(createEditMenu());
         return menu;
     }
 
@@ -58,6 +59,14 @@ public class Launcher {
         menu.add(new JMenuItem(new CloseAction(this)));
         menu.add(new JMenuItem(new QuitAction(this)));
 
+        return menu;
+    }
+
+    private JMenu createEditMenu() {
+        JMenu menu = new JMenu("Edit");
+        menu.setMnemonic(KeyEvent.VK_E);
+        menu.add(new JMenuItem(new CopyAction(this)));
+        menu.add(new JMenuItem(new PasteAction(this)));
         return menu;
     }
 
@@ -296,6 +305,50 @@ public class Launcher {
         @Override
         public void actionPerformed(final ActionEvent e) {
             _launcher.quit();
+        }
+    }
+
+    static class CopyAction extends AbstractMenuAction {
+        /** シリアルバージョンUID */
+        private static final long serialVersionUID = 5650954796598394708L;
+
+        protected CopyAction(final Launcher launcher) {
+            super("Copy", launcher);
+
+            setMnemonic(KeyEvent.VK_C);
+            setAccelerator(
+                    KeyStroke.getKeyStroke(
+                            KeyEvent.VK_C, InputEvent.CTRL_DOWN_MASK));
+
+            setEnabled(false);
+            addListnerToChangeEnabled(this);
+        }
+
+        @Override
+        public void actionPerformed(final ActionEvent e) {
+            _launcher.getActiveWindow().copy();
+        }
+    }
+
+    static class PasteAction extends AbstractMenuAction {
+        /** シリアルバージョンUID */
+        private static final long serialVersionUID = -4259549851535646353L;
+
+        protected PasteAction(final Launcher launcher) {
+            super("Paste", launcher);
+
+            setMnemonic(KeyEvent.VK_V);
+            setAccelerator(
+                    KeyStroke.getKeyStroke(
+                            KeyEvent.VK_V, InputEvent.CTRL_DOWN_MASK));
+
+            setEnabled(false);
+            addListnerToChangeEnabled(this);
+        }
+
+        @Override
+        public void actionPerformed(final ActionEvent e) {
+            _launcher.getActiveWindow().paste();
         }
     }
 
