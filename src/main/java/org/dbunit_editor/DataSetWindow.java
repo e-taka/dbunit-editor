@@ -99,6 +99,10 @@ public class DataSetWindow {
         _window.setTitle(_model.getName());
     }
 
+    public void cut() {
+        getSelectedTab().cut();
+    }
+
     public void copy() {
         getSelectedTab().copy();
     }

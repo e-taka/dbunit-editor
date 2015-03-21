@@ -57,6 +57,7 @@ public class Launcher {
         menu.add(new JMenuItem(new SaveAction(this)));
         menu.add(new JMenuItem(new SaveAsAction(this)));
         menu.add(new JMenuItem(new CloseAction(this)));
+        menu.addSeparator();
         menu.add(new JMenuItem(new QuitAction(this)));
 
         return menu;
@@ -65,6 +66,7 @@ public class Launcher {
     private JMenu createEditMenu() {
         JMenu menu = new JMenu("Edit");
         menu.setMnemonic(KeyEvent.VK_E);
+        menu.add(new JMenuItem(new CutAction(this)));
         menu.add(new JMenuItem(new CopyAction(this)));
         menu.add(new JMenuItem(new PasteAction(this)));
         return menu;
@@ -305,6 +307,28 @@ public class Launcher {
         @Override
         public void actionPerformed(final ActionEvent e) {
             _launcher.quit();
+        }
+    }
+
+    static class CutAction extends AbstractMenuAction {
+        /** シリアルバージョンUID */
+        private static final long serialVersionUID = -7824063629410744314L;
+
+        protected CutAction(final Launcher launcher) {
+            super("Cut", launcher);
+
+            setMnemonic(KeyEvent.VK_X);
+            setAccelerator(
+                    KeyStroke.getKeyStroke(
+                            KeyEvent.VK_X, InputEvent.CTRL_DOWN_MASK));
+
+            setEnabled(false);
+            addListnerToChangeEnabled(this);
+        }
+
+        @Override
+        public void actionPerformed(final ActionEvent e) {
+            _launcher.getActiveWindow().cut();
         }
     }
 

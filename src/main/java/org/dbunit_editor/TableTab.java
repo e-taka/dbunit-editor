@@ -1,17 +1,11 @@
 package org.dbunit_editor;
 
 import java.awt.Component;
-import java.awt.Toolkit;
-import java.awt.datatransfer.Clipboard;
-import java.awt.datatransfer.DataFlavor;
-import java.awt.datatransfer.StringSelection;
-import java.awt.datatransfer.UnsupportedFlavorException;
 import java.awt.event.ActionEvent;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.io.IOException;
 
 import javax.swing.AbstractAction;
 import javax.swing.ActionMap;
@@ -47,11 +41,20 @@ public class TableTab extends JPanel {
                 c.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
         ActionMap am = c.getActionMap();
 
+        im.put(KeyStroke.getKeyStroke("control x"), "cut");
+        am.put("cut", new AbstractAction() {
+            /** シリアルバージョンUID */
+            private static final long serialVersionUID = 5634784048650987552L;
+            @Override
+            public void actionPerformed(final ActionEvent e) {
+                cut();
+            }
+        });
+
         im.put(KeyStroke.getKeyStroke("control c"), "copy");
         am.put("copy", new AbstractAction() {
             /** シリアルバージョンUID */
             private static final long serialVersionUID = 5634784048650987552L;
-
             @Override
             public void actionPerformed(final ActionEvent e) {
                 copy();
@@ -62,7 +65,6 @@ public class TableTab extends JPanel {
         am.put("paste", new AbstractAction() {
             /** シリアルバージョンUID */
             private static final long serialVersionUID = 8931828697935085260L;
-
             @Override
             public void actionPerformed(final ActionEvent e) {
                 paste();
@@ -96,30 +98,24 @@ public class TableTab extends JPanel {
         }
     }
 
+    public void cut() {
+        int row = _table.getSelectedRow();
+        int column = _table.getSelectedColumn();
+        ClipboardHelper.setData((String) _table.getValueAt(row, column));
+        _table.setValueAt("", row, column);
+    }
+
     public void copy() {
         int row = _table.getSelectedRow();
         int column = _table.getSelectedColumn();
-        String value = (String) _table.getValueAt(row, column);
-
-        Toolkit toolkit = Toolkit.getDefaultToolkit();
-        Clipboard clipboard = toolkit.getSystemClipboard();
-        StringSelection ss = new StringSelection(value);
-        clipboard.setContents(ss, null);
+        ClipboardHelper.setData((String) _table.getValueAt(row, column));
     }
 
     public void paste() {
-        Toolkit toolkit = Toolkit.getDefaultToolkit();
-        Clipboard clipboard = toolkit.getSystemClipboard();
-
-        try {
-            String value = (String) clipboard.getData(DataFlavor.stringFlavor);
-            int row = _table.getSelectedRow();
-            int column = _table.getSelectedColumn();
-            _table.setValueAt(value, row, column);
-        } catch (UnsupportedFlavorException | IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
+        String value = ClipboardHelper.getData();
+        int row = _table.getSelectedRow();
+        int column = _table.getSelectedColumn();
+        _table.setValueAt(value, row, column);
     }
 
     static class TableViewer extends JTable {
