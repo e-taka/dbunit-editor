@@ -8,28 +8,9 @@ targetCompatibility = 1.7
 def defaultEncoding = 'UTF-8'
 compileJava.options.encoding = defaultEncoding
 
-version = '0.0.1'
+version = '0.0.2'
 mainClassName = 'org.dbunit_editor.Launcher'
-applicationName = 'DbUnit Editor'
-
-jar {
-    manifest {
-        attributes 'Implementation-Title': 'DbUnit Editor',
-                   'Implementation-Version': version,
-                   'Main-Class': mainClassName
-    }
-
-    dependsOn configurations.runtime
-    from {
-        (configurations.runtime - configurations.provided).collect {
-            it.isDirectory() ? it : zipTree(it)
-        }
-    } {
-        exclude "META-INF/*.SF"
-        exclude "META-INF/*.DSA"
-        exclude "META-INF/*.RSA"
-    }
-}
+applicationName = 'dbunit-editor'
 
 repositories {
     mavenCentral()
@@ -37,7 +18,6 @@ repositories {
 
 configurations {
     provided
-    compile.extendsFrom provided
 }
 
 dependencies {
@@ -45,4 +25,8 @@ dependencies {
         exclude module: 'junit'
     }
     provided 'org.projectlombok:lombok:1.16.2'
+}
+
+compileJava {
+    classpath = configurations.compile + configurations.provided
 }
