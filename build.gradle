@@ -18,6 +18,7 @@ repositories {
 
 configurations {
     provided
+    compile.extendsFrom(provided)
 }
 
 dependencies {
@@ -25,8 +26,4 @@ dependencies {
         exclude module: 'junit'
     }
     provided 'org.projectlombok:lombok:1.16.2'
-}
-
-compileJava {
-    classpath = configurations.compile + configurations.provided
 }
