@@ -14,6 +14,7 @@ import org.dbunit.dataset.DefaultDataSet;
 import org.dbunit.dataset.DefaultTable;
 import org.dbunit.dataset.ITable;
 import org.dbunit.dataset.ITableMetaData;
+import org.dbunit.dataset.datatype.DataType;
 
 @Accessors(prefix = "_")
 public class TableModel extends DefaultTableModel {
@@ -23,22 +24,28 @@ public class TableModel extends DefaultTableModel {
     /** テーブル名 */
     @Getter
     private final String _name;
-    private final ITableMetaData _meta;
 
     public TableModel(final ITable t) throws DataSetException {
         super(toColumnNames(t.getTableMetaData()), 0);
 
-        _meta = t.getTableMetaData();
-        _name = _meta.getTableName();
+        ITableMetaData meta = t.getTableMetaData();
+        _name = meta.getTableName();
 
         for (int i = 0; i < t.getRowCount(); i++) {
             List<Object> row = new ArrayList<>();
-            for (final Column c : _meta.getColumns()) {
+            for (final Column c : meta.getColumns()) {
                 row.add(t.getValue(i, c.getColumnName()));
             }
             addRow(row.toArray(new Object[row.size()]));
         }
-        addRow(new Object[_meta.getColumns().length]);
+        addRow(new Object[meta.getColumns().length]);
+    }
+
+    public TableModel(final String name, final List<String> columns) {
+        super(columns.toArray(new String[columns.size()]), 0);
+
+        _name = name;
+        addRow(new Object[columns.size()]);
     }
 
     private static String[] toColumnNames(final ITableMetaData meta)
@@ -50,8 +57,17 @@ public class TableModel extends DefaultTableModel {
         return names.toArray(new String[names.size()]);
     }
 
+    private Column[] getColumns() {
+        int count = getColumnCount();
+        Column[] columns = new Column[count];
+        for (int i = 0; i < count; i++) {
+            columns[i] = new Column(getColumnName(i), DataType.UNKNOWN);;
+        }
+        return columns;
+    }
+
     public void writeTo(final DefaultDataSet ds) throws DataSetException {
-        DefaultTable t = new DefaultTable(_meta);
+        DefaultTable t = new DefaultTable(_name, getColumns());
         int rows = getRowCount() - 1;
         int columns = getColumnCount();
         for (int row = 0; row < rows; row++) {

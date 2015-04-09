@@ -5,6 +5,7 @@ import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.io.File;
 import java.io.IOException;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
 
@@ -53,6 +54,7 @@ public class Launcher {
     private JMenu createFileMenu() {
         JMenu menu = new JMenu("File");
         menu.setMnemonic(KeyEvent.VK_F);
+        menu.add(new JMenuItem(new NewAction(this)));
         menu.add(new JMenuItem(new OpenAction(this)));
         menu.add(new JMenuItem(new SaveAction(this)));
         menu.add(new JMenuItem(new SaveAsAction(this)));
@@ -109,14 +111,18 @@ public class Launcher {
 
     public void open(final File path) {
         try {
-            DataSetWindow win = new DataSetWindow(_pane, path);
-            win.addListener(new DataSetWindowListener(this, win));
-            win.show();
-            _files.add(win);
+            open(DataSetModel.read(path));
         } catch (DataSetException | IOException ex) {
             // TODO Auto-generated catch block
             ex.printStackTrace();
         }
+    }
+
+    public void open(final DataSetModel model) {
+        DataSetWindow win = new DataSetWindow(_pane, model);
+        win.addListener(new DataSetWindowListener(this, win));
+        win.show();
+        _files.add(win);
     }
 
     public void quit() {
@@ -167,6 +173,33 @@ public class Launcher {
                     a.setEnabled(ActiveEvent.ACTIVATED.equals(e.getEvent()));
                 }
             });
+        }
+    }
+
+    static class NewAction extends AbstractMenuAction {
+        /** シリアルバージョンUID */
+        private static final long serialVersionUID = 1569890411599767010L;
+
+        public NewAction(final Launcher launcher) {
+            super("New...", launcher);
+            setMnemonic(KeyEvent.VK_N);
+            setAccelerator(
+                    KeyStroke.getKeyStroke(
+                            KeyEvent.VK_N, InputEvent.CTRL_DOWN_MASK));
+        }
+
+        @Override
+        public void actionPerformed(final ActionEvent e) {
+            TableSelectorDialog d = new TableSelectorDialog(_launcher._window);
+            try {
+                DataSetModel model = d.openDialog();
+                if (model != null) {
+                    _launcher.open(model);
+                }
+            } catch (SQLException ex) {
+                // TODO Auto-generated catch block
+                ex.printStackTrace();
+            }
         }
     }
 

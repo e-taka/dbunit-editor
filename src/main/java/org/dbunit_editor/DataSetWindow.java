@@ -25,8 +25,13 @@ public class DataSetWindow {
 
     public DataSetWindow(final JDesktopPane desktop, final File path)
             throws DataSetException, IOException {
+        this(desktop, DataSetModel.read(path));
+    }
+
+    public DataSetWindow(final JDesktopPane desktop, final DataSetModel model) {
         _desktop = desktop;
-        _model = DataSetModel.read(path);
+        _model = model;
+
         _window = new JInternalFrame(_model.getName());
         _window.setDefaultCloseOperation(JInternalFrame.DISPOSE_ON_CLOSE);
         _window.setSize(200, 200);

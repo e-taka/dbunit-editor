@@ -26,4 +26,5 @@ dependencies {
         exclude module: 'junit'
     }
     provided 'org.projectlombok:lombok:1.16.2'
+    runtime 'com.h2database:h2:1.4.186'
 }
