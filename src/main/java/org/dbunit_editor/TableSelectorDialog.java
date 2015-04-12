@@ -5,6 +5,7 @@ import java.awt.FlowLayout;
 import java.awt.Frame;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
@@ -18,6 +19,8 @@ import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.ListSelectionModel;
+
+import org.dbunit_editor.config.ConfigurationRepository;
 
 /**
  * テーブル名のリストを表示し、選択するダイアログ.
@@ -36,9 +39,8 @@ public class TableSelectorDialog {
         _dialog.setLocationRelativeTo(owner);
     }
 
-    public DataSetModel openDialog() throws SQLException {
-        // データベースを変更できるようにする
-        DBHelper helper = new DBHelper("jdbc:h2:./test");
+    public DataSetModel openDialog() throws IOException, SQLException {
+        DBHelper helper = new DBHelper(ConfigurationRepository.get());
         for (final String table : helper.getTables()) {
             _model.addElement(table);
         }

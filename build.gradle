@@ -25,6 +25,7 @@ dependencies {
     compile('org.dbunit:dbunit:2.5.0') {
         exclude module: 'junit'
     }
+    compile 'com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.5.2'
     provided 'org.projectlombok:lombok:1.16.2'
     runtime 'com.h2database:h2:1.4.186'
 }

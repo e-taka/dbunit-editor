@@ -196,7 +196,7 @@ public class Launcher {
                 if (model != null) {
                     _launcher.open(model);
                 }
-            } catch (SQLException ex) {
+            } catch (IOException | SQLException ex) {
                 // TODO Auto-generated catch block
                 ex.printStackTrace();
             }

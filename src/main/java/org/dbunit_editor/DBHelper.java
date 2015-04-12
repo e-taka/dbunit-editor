@@ -8,16 +8,35 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class DBHelper {
-    private String _url;
+import org.dbunit_editor.config.Configuration;
 
-    public DBHelper(final String url) {
+public class DBHelper {
+    private final String _url;
+    private final String _username;
+    private final String _password;
+
+    public DBHelper(final Configuration conf) {
+        this(conf.getDatabase());
+    }
+
+    private DBHelper(final Configuration.Database db) {
+        this(db.getUrl(), db.getUsername(), db.getPassword());
+    }
+
+    public DBHelper(
+            final String url, final String username, final String password) {
         _url = url;
+        _username = username;
+        _password = password;
+    }
+
+    private Connection connection() throws SQLException {
+        return DriverManager.getConnection(_url, _username, _password);
     }
 
     public List<String> getTables() throws SQLException {
         List<String> names = new ArrayList<>();
-        try (Connection con = DriverManager.getConnection(_url)) {
+        try (Connection con = connection()) {
             DatabaseMetaData meta = con.getMetaData();
             ResultSet rs = meta.getTables(null, null, "%", new String[] {
                     "TABLE",
@@ -33,7 +52,7 @@ public class DBHelper {
 
     public List<String> getColumns(final String table) throws SQLException {
         List<String> names = new ArrayList<>();
-        try (Connection con = DriverManager.getConnection(_url)) {
+        try (Connection con = connection()) {
             DatabaseMetaData meta = con.getMetaData();
             ResultSet rs = meta.getColumns(null, null, table, "%");
             if (rs.first()) {
@@ -43,15 +62,5 @@ public class DBHelper {
             }
         }
         return names;
-    }
-
-    public static void main(final String...args) throws Exception {
-        DBHelper helper = new DBHelper("jdbc:h2:./test");
-        List<String> tables = helper.getTables();
-        System.out.println(tables);
-        for (final String table : tables) {
-            List<String> columns = helper.getColumns(table);
-            System.out.println(table + " => " + columns);
-        }
     }
 }
